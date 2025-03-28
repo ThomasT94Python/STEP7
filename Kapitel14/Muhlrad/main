@@ -1,0 +1,60 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Die Drehzahl eines Mühlrades soll kontrolliert werden. Das Mühlrad wird durch zwei Wasserzuläufe angetrieben werden und muss vor zu hoher Drehzahl geschützt werden.
+Bei zu hoher Drehzahl wird der Wasserzulauf durch Abschalten der Zuflüsse verringert. Ist die Drehzahl zu schnell, kann zunächst ein Zufluss abgeschaltet werden. Ist
+die Geschwindigkeit immer noch zu schnell, wird die zweite Wasserzufuhr unterbrochen. Der Drehgeber des Mühlrades liefert je umdrehung 4 Impulse. Die Messung wird in
+U/min umgerechnet. Das Mühlrad darf maximal eine Minute lang die Drehzahl von 10 U/min überschreiten.
+*)
+
+
+
+// Um die Drehzahl zu bestimmen brauchen wir einen Zähler für die Anzahl der Umdrehungen und eine Zeitmessung
+
+"IEC_Counter_0_DB".CTU(CU:= "Impulsgeber_S1",
+                       R:= "Reset_Counter",
+                       PV:=0,
+                       CV=>"Zaehlstand");
+
+// Wir messen die Anzahl der Umdrehungen pro 3 sekunden und rechnen diese in umdrehungen pro Minute um. Deswegen brauchen wir einen Timer,
+// der sich alle 3 sekunden Zurücksetzt.
+// 
+"IEC_Timer_0_DB".TON(IN:= NOT "Timer_Drehzahlmessung",
+                     PT:= t#3s,
+                     Q=> "Timer_Drehzahlmessung");
+
+IF "Timer_Drehzahlmessung" THEN
+    "Reset_Counter" := TRUE;
+    "Drehzahl_Ergebnis" := "Zaehlstand"; // Speichert das Ergebnis für 3 Sekunden
+ELSE
+    "Reset_Counter" := FALSE;
+END_IF;
+
+// Erlaubt sind maximal 10 umdrehungen pro minute oder 40 Impulse pro minute oder 2 Impulse alle 3 sekunden
+// 
+IF "Drehzahl_Ergebnis" <= 2 THEN
+    "Wasserzulauf_1" := TRUE;
+    "Wasserzulauf_2" := TRUE;
+    "Wasser_Sperre" := FALSE;
+ELSE
+    "Wasser_Sperre" := TRUE;
+END_IF;
+
+// Ist die Drehzahl höher als 10 Upm, dann ist Wassersperre True und im ersten Schritt wird ein Timer gestartet, der nach einer Minute den Ausgang auf 1 setzt
+
+"IEC_Timer_0_DB_1".TON(IN:="Wasser_Sperre",
+                       PT:=t#60s,
+                       Q=> "Timer_Wassersperre");
+
+IF "Wasser_Sperre" AND NOT "Timer_Wassersperre" THEN
+    "Wasserzulauf_1" := TRUE;
+    "Wasserzulauf_2" := FALSE; // Zuerst wird ein Wasserzulauf gesperrt
+ELSIF "Wasser_Sperre" AND "Timer_Wassersperre" THEN
+    "Wasserzulauf_1" := FALSE; // Nach einer Minute werden beide gesperrt
+    "Wasserzulauf_2" := FALSE;
+END_IF;
+
+// Wird die Drehzahl dadurch so erfolgreich verringert, so schlaten sich die beiden Wasserzuläufe wieder ein und Wasser_sperre wird False, was den Timer
+// zurücksetzt
+
+
+
