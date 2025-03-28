@@ -1,0 +1,4 @@
+#IEC_Timer_0_Instance(IN := #Material_IN,
+                      PT := WORD_TO_TIME(#Nachlaufzeit_IN),
+                      Q => #Ruttel_OUT);
+
