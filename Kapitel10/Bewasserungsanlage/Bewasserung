@@ -1,0 +1,5 @@
+IF #FeSe AND #HeSe THEN
+    #Ven := TRUE;
+ELSE
+    #Ven := FALSE;
+END_IF;
