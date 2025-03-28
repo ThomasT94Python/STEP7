@@ -1,0 +1,28 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+Die Schutztür einer Maschine muss geschlossen sein, damit sie in Betrieb gegehn kann. Ist die Tür geschlossen, dann wird das Freigabesignal an die Maschine gesetzt.
+Wird die Tür wieder geöffnet, erlischt das Freigabesignal sofort und kann erst wieder eingeschaltet werden, wenn die Schutztür komplett geöffnet und wieder geschlossen wird.
+Alle Sensoren sind doppelt ausgelegt
+*)
+
+// Überprüft ob die Tür vollständig geöffnet wurde
+IF "Sensor_S3" AND "Sensor_S4" THEN
+    "VollstandigGeoffnet" := TRUE;
+END_IF;
+
+(*
+Die Maschine wird freigegeben wenn die Tür vollständig göffnet war und die Sensoren S1 und S2 True ergeben.
+
+War die Tür nie vollständig geöffnet, dann kann die Maschine nicht freigegeben werden.
+
+Nach dem Schließen ist VollständigGeöffnet False und wird die Tür geöffnet erlischt das Freigabesignal und die Tür muss wieder vollständig geöffnet werden
+*)
+IF "Sensor_S1" AND "Sensor_S2" AND "VollstandigGeoffnet" THEN
+    "Freigabesignal" := TRUE;
+    "VollstandigGeoffnet" := FALSE;
+ELSIF (NOT "Sensor_S1" OR NOT "Sensor_S2") AND NOT "VollstandigGeoffnet" THEN
+    "Freigabesignal" := FALSE;
+END_IF;
+
+
