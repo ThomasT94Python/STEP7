@@ -1,0 +1,10 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+Zur Übung der Slice-Anwendung soll aus dem Eingangsbyte EB0 das Bit 0, Bit 4 und Bit 7 gefiltert und an den Ausgängen A0.0 bis A0.2 angezeigt werden.
+*)
+"Slicer_DB"(IN_Byte:="Eingangsbyte",
+            Out_0=>"Ausgang_Bit_0",
+            Out_4=>"Ausgang_Bit_4",
+            Out_7=>"Ausgang_Bit_7");
+
