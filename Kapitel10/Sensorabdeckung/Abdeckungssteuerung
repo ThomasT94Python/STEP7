@@ -1,0 +1,26 @@
+// Überprüfe ob die Steuerung An ist mit einem Merker
+
+IF #TaSTE AND #TaSTA THEN
+    #LaStE := TRUE;
+ELSIF NOT #TaSTA THEN
+    #LaStE := FALSE;
+    #SeAk := FALSE;
+    #SenAbOf := FALSE;
+END_IF;
+
+IF #LaStE AND #S1 THEN
+    #SenAbOf := TRUE;
+END_IF;
+
+IF #LaStE AND #S2 THEN
+    #SenAbOf := FALSE;
+END_IF;
+
+IF #LaStE AND #S3 THEN
+    #SeAk := TRUE;
+END_IF;
+
+IF #LaStE AND #S4 THEN
+    #SeAk := FALSE;
+END_IF;
+
