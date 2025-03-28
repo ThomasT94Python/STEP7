@@ -1,6 +1,7 @@
 Hier finden Sie die ausgearbeiteten Übungsbeispiele aus dem Buch "STEP7-Workbook für S7-1200/1500 und TIA Portal" von Weiß und Habermann. Alle Programme wurden in ST geschrieben und getestet.
 Die Strukturierung erfolgt in Kapitel und in jedem Kapitel befinden sich die Lösungen der Übungsbeispiele gesammelt in einem Unterordner. Dieser enthält main, das ist das Hauptprogramm, und gegebenenfalls
-Funktionen und Funktionsblöcke, die alle einen Namen tragen, die ihrer Funktionalität entsprechen. Des Weiteren finden Sie eine Excel Tabelle mit den Eingängen, Ausgängen und Merkern.
+Funktionen und Funktionsblöcke, die alle einen Namen tragen, die ihrer Funktionalität entsprechen. Des Weiteren finden Sie eine Excel Tabelle mit den zu der Steuerung dazugehörigen Eingängen, Ausgängen und 
+Merkern.
 
 Die Kapitel behandeln folgende Themen
 
