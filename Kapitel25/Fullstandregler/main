@@ -1,0 +1,9 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Die Füllstandregelung eines Behälters mit einem Schwimmer soll so programmiert werden, dass der Füllstand auf einer vorgegebenen Literzahl gehalten wird. Die
+Hysterese darf 2% vom Füllstand betragen. Die Parameter werden an den FB übergeben. Die Ausgabe des FBs schaltet einen digitalen Ausgang
+*)
+
+"ZweiPunktRegler_DB"(Ist_IN:="Schwimmer",
+                     Soll_IN:="Sollwert",
+                     Fullen_Out=>"Behalter_fullen");
