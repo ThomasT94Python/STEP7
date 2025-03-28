@@ -1,0 +1,30 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Auf einem Rollengang befinden sich lackierte Lautoprecherboxen, die über einen Hebetisch auf einen weiteren Rillengang angehoben werden müssen. Die Bedienung
+erfolgt durch eine Person, die von Hand die Boxen auf den Hebetisch schiebt und dann mit einer Fußtaste den Hebetisch auf die obere Position anhebt. Diese
+Position wird gehalten, bis die Fußtaste wieder losgelassen wird. Die Anlage kann über einen Taster ein- bzw. ausgeschaltet werden.
+*)
+
+(*
+Wenn der Schlißer TasterAnlageEin gedrückt ist, dann liefert er den Wert TRUE und wenn der Öffner TasterAnlageAus nicht gedrückt ist, dann liefert er den Wert
+TRUE. Wenn das erfüllt ist, soll die Lampe eingeschaltet werden und der Merker MerkerAnlageAn ist true um für den weiteren Prozess zu signalisieren, dass
+die Fußtaste betätigt werden kann. Sollte TasterAnlageAus gedrückt sein, dann schaltet sich die Anlage aus.
+*)
+IF "TasterAnlageEin" AND "TasterAnlageAus" THEN
+    "Lampe" := TRUE;
+    "MerkerAnlageAn" := TRUE;
+ELSIF NOT "TasterAnlageAus" THEN
+    "Lampe" := FALSE;
+    "MerkerAnlageAn" := FALSE;
+END_IF;
+
+(*
+Sollte die Anlage an sein und der Fußtaster betätigt werden, so wir der Zylinder ausgefahren. Wenn die Anlage aus ist oder der Fußtaster nicht betätigt werden,
+so wird der Zylinder nicht hochgefahren.
+*)
+
+IF "MerkerAnlageAn" AND "FusstasterHebetischHoch" THEN
+    "Zylinder" := TRUE;
+ELSE
+    "Zylinder" := FALSE;
+END_IF;
