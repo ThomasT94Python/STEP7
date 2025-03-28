@@ -1,0 +1,33 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+Ein Kranfahrwerk ist mit einem Zählwert ausgerüstet. Das Zählwerk kann keine Richtung signalisieren, sondern liefert nur Impulse. Die
+Richtungssignale kommen vom Frequenzumrichter. Es soll eine Wegmessung programmiert werden. Die Wegmessung wird an einem Kreuzschalter
+auf den Wert 100 gesetzt. Dieser Reset wird oft genug angefahren, da durch Schlupf und Rutschen des Messrades Signale verschluckt werden
+und die Wegmessung dadurch ungenau wird.
+*)
+
+// Hinweis: Der Kreuzschalter befindet sich ca. in der Mitte der Krankbahn und wechselt bei Überfahrten seinen Binären Zustand
+// Das heißt wir benötigen eine Flankenerkennung
+
+"Impulsmerker_pos" := "Kreuzschalter_S1" AND NOT "Flankenmerker_pos";
+"Flankenmerker_pos" := NOT "Kreuzschalter_S1";
+
+"Impulsmerker_neg" := NOT "Kreuzschalter_S1" AND NOT "Flankenmerker_neg";
+"Flankenmerker_neg" := NOT "Kreuzschalter_S1";
+
+"Impuls" := "Impulsmerker_neg" OR "Impulsmerker_pos";
+
+IF "Richtung_Links" AND NOT "Richtung_Rechts" THEN
+    "Zaehlen_rueck" := "Zaehlereingang";
+    "Zaehlen_vor" := FALSE;
+ELSIF NOT "Richtung_Links" AND "Richtung_Rechts" THEN
+    "Zaehlen_vor" := "Zaehlereingang";
+    "Zaehlen_rueck" := FALSE;
+END_IF;
+
+"IEC_Counter_0_DB".CTUD(CU:= "Zaehlen_vor",
+                        CD := "Zaehlen_rueck",
+                        LD:="Impuls",
+                        PV:=100,
+                        CV=> "Zaehleranzeige");
