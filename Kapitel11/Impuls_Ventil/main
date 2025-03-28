@@ -1,0 +1,57 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Ventile müssen nicht nur ein oder ausgeschalten werden, sondern auch pulsen. Es ist eine FC1 zu schreiben, die folgende Aufgabe
+erfüllt: Das angeschlossene Bentil hat die Betriebsarten öffnen, schließen oder pulsen. Das Pulsen erfolgt über zwei einstellbare Zeiten
+(SE Impuls) für die Öffnungs- und Schließzeit.
+*)
+
+// Überprüfe ob die Steuerung ein oder ausgeschalten ist
+IF "Taster_Ein" AND "Taster_Aus" THEN
+    "Merker_Steuerung" := TRUE;
+    "Lampe_St_Ein" := TRUE;
+ELSIF NOT "Taster_Aus" THEN
+    "Merker_Steuerung" := FALSE;
+    "Lampe_St_Ein" := FALSE;
+    "Ventil" := FALSE;
+END_IF;
+
+IF "Merker_Steuerung" THEN
+    CASE "Betriebsart" OF
+        0:  // Schließen
+            "Ventil" := FALSE;
+        1:  // Öffnen
+            "Ventil" := TRUE;
+        2:  // Pulsen
+            "FC_INT2S5Time"(IN_Integer := "Offnungszeit",
+                            OUT_S5Time => "S5Time_Offnung"); // Nach T_Offnungszeit soll geschlossen werden
+            "FC_INT2S5Time"(IN_Integer := "Offnungszeit" + "Schließzeit",
+                            OUT_S5Time => "S5Time_Schliessung"); // Nach T_Offnungszeit + T_Schliessung soll wieder geöffnet werden
+            
+            (*
+            Im ersten Zyklus ist Toggle_Merker = False, also werden Ausgangs_Timer_1 und Ausgangs_Timer_2 die Werte False annehmen.
+            Somit ist die erste Bedingung in dem folgenden IF-Statement erfüllt und das Ventil wird geöffnet der Toggle_Merker wird auf wahr gesetz
+            Somit werden die Timer gestartet. Nach T_Offnungszeit wird Ausgang_Timer_1 auf wahr gesetzt und die zweite Bedingung im IF-Statement
+            wird erfüllt. Das Ventil wird geschlossen und Toggle bleibt weiterhin true. Somit bleibt Ausgang_Timer_1 auf True und Ausgang_Timer_2
+            auf False. Das bleibt so lange bis die Zeit T_Offnungszeit + T_Schliessung erreicht wird. Dann werden Ausgang_Timer_1 und Ausgang_Timer_2
+            wahr und die dritte Bedingung im IF Statement erfüllt. Das Ventil wird geöffnet und der Toggle_Merker wird auf False gesetzt. Somit werden
+            die Timer zurückgesetzt und Ausgang_Timer_1 und Ausgang_Timer_2 werden False.
+            *)
+            "Func_Val" := S_ODT(T_NO := 0, S := "Toggle_Merker", TV :="S5Time_Offnung", Q => "Ausgang_Timer_1");
+            "Func_Val" := S_ODT(T_NO := 1, S := "Toggle_Merker", TV := "S5Time_Schliessung", Q => "Ausgang_Timer_2");
+            
+            IF NOT "Ausgang_Timer_1" AND NOT "Ausgang_Timer_2" THEN
+                "Ventil" := TRUE;
+                "Toggle_Merker" := TRUE;
+            ELSIF "Ausgang_Timer_1" AND NOT "Ausgang_Timer_2" THEN
+                "Ventil" := FALSE;
+                "Toggle_Merker" := TRUE;
+            ELSIF "Ausgang_Timer_1" AND "Ausgang_Timer_2" THEN
+                "Ventil" := TRUE;
+                "Toggle_Merker" := FALSE;
+            END_IF;
+            
+        ELSE  // Ungültige Auswahl
+            ;
+    END_CASE;
+    
+END_IF;
