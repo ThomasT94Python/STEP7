@@ -1,0 +1,9 @@
+IF #Initialwinkel_IN <> #Zielwinkel_IN THEN
+    #Drehen_Out := TRUE;
+ELSIF #Initialwinkel_IN = #Zielwinkel_IN THEN
+    #Drehen_Out := FALSE;
+END_IF;
+
+IF #Initialwinkel_IN = 0 AND #Zielwinkel_IN = 360 THEN
+    #Drehen_Out := FALSE;
+END_IF;
