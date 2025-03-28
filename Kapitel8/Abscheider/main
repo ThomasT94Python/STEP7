@@ -1,0 +1,11 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+In einer Rohrleitung ist ein Abscheider für Schmutzpartikel eingebaut. Die Schmutzpartikel werden dabei in einem Behälter gesammelt.
+Wenn der Schmutzbehälter voll ist, soll die Pumpe abgeschaltet werden. Über eine Entleerungsklappe kann der Behälter geleert
+werden. Die Pumoe kann erst wieder eingeschaltet werden, wenn der Schmutzbehälter entleert wurde und sich die Entleerungsklappe
+in der Grundeinstellung befindet. Das SPS Programm soll in einer FC erstellt werden, diese ist im OB1 aufzurufen
+*)
+
+"Schmutzbehaelter"();
+"PumpenSteuerung"();
