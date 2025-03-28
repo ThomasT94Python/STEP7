@@ -1,0 +1,27 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Insgesamt sind 3 Taster mit Signal-Lampe zur Auswahl von drei Werkzeugen montiert. Das aktuell ausgewählte Werkzeug wird über
+ein SR-Glied bestimmt und muss eindeutig sein. Das heißt es muss eine gegenseitige Verriegelung der SR Glieder programmiert werden.
+*)
+
+// Verriegelung im NOT statements
+// Fall wenn Taster 1 gedrückt wird
+IF "Taster_Werkzeug_1" AND NOT "Taster_Werkzeug_2" AND NOT "Taster_Werkzeug_3" THEN
+    "Lampe_1" := TRUE;
+    "Lampe_2" := FALSE;
+    "Lampe_3" := FALSE;
+END_IF;
+
+// Fall wenn Taster 2 gedrückt wird
+IF NOT "Taster_Werkzeug_1" AND "Taster_Werkzeug_2" AND NOT "Taster_Werkzeug_3" THEN
+    "Lampe_1" := FALSE;
+    "Lampe_2" := TRUE;
+    "Lampe_3" := FALSE;
+END_IF;
+
+// Fall wenn Taster 3 gedrückt wird
+IF NOT "Taster_Werkzeug_1" AND NOT "Taster_Werkzeug_2" AND "Taster_Werkzeug_3" THEN
+    "Lampe_1" := FALSE;
+    "Lampe_2" := FALSE;
+    "Lampe_3" := TRUE;
+END_IF;
