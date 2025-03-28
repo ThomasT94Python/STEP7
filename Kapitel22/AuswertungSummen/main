@@ -1,0 +1,40 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+Vier Zahlen können über Schieberegeler eingestellt werden. Von den Zahlen 1 und 2 sowie 3 und 4 ist jeweils die Summe zu bilden. Die Ergebnisse sind
+miteinander zu vergleichen und die Relationen in Form von Lampen anzuzeigen.
+*)
+
+"Summe_1" := "Zahl_1" + "Zahl_2";
+"Summe_2" := "Zahl_3" + "Zahl_4";
+
+IF "Summe_1" < "Summe_2" THEN
+    GOTO CASE_1;
+ELSIF "Summe_1" = "Summe_2" THEN
+    GOTO CASE_2;
+ELSIF "Summe_1" > "Summe_2" THEN
+    GOTO CASE_3;
+ELSE
+    GOTO PROGRAMMENDE;
+END_IF;
+
+CASE_1:
+    "Lampe_1" := TRUE;
+    "Lampe_2" := FALSE;
+    "Lampe_3" := FALSE;
+    GOTO PROGRAMMENDE;
+
+CASE_2:
+    "Lampe_1" := FALSE;
+    "Lampe_2" := TRUE;
+    "Lampe_3" := FALSE;
+    GOTO PROGRAMMENDE;
+
+CASE_3:
+    "Lampe_1" := FALSE;
+    "Lampe_2" := FALSE;
+    "Lampe_3" := TRUE;
+    GOTO PROGRAMMENDE;
+
+PROGRAMMENDE:
+    ;
