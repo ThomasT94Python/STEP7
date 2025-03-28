@@ -1,0 +1,25 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+Eine Bahnschranke am eingleisigen Bahnübergang soll automatisiert werden. Der kommende Zug in Richtung Schranke erzeugt ein erstes Signal, dass die rote Lampe
+erleuchten lässt. Ein zweites Signal schließt die Schranke. Hat der Zug die Bahhnschranke passiert, betätigt er einen dirtten Schalter, der die Schranke öffnet.
+Ein vierter Schlater löscht die rote Lampe
+*)
+
+
+// Sensor S1 registriert einen Zug
+IF NOT "Sensor_S1" THEN
+    "Lampe" := FALSE;
+END_IF;
+
+IF NOT "Sensor_S2" THEN
+    "Schranke" := FALSE;
+END_IF;
+
+IF NOT "Sensor_S3" THEN
+    "Schranke" := TRUE;
+END_IF;
+
+IF NOT "Sensor_S4" THEN
+    "Lampe" := TRUE;
+END_IF;
