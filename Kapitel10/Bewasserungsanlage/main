@@ -1,0 +1,11 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Eine Bewässerungsanlage soll mehrere Bereiche bewässern. Die Bewässerung für den ersten Bereich ist Tabelle 10.5 zu entnehmen.
+Die zu erstellende FC1 wird je Bewässerungssektor im OB1 mit den entpsrechenden Parametern aufgerufen. Der Sensor zur
+Feuchtigkeitsmessung hat True, wenn bewässert werden soll. Mit dem ausgang der FC1 wird das Ventil zur Bewässerung geöffnet.
+Die Bewässerung erfolgt nur, wenn der Helligkeits-Sensor ein True liefert
+*)
+
+"Bewasserung"(FeSe := "Feuchtigkeit_Sensor",
+              HeSe := "Helligkeit_Sensor",
+              Ven => "Ventil");
