@@ -1,0 +1,107 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Auf einem Band sollen zwei aufeinandergestapelte Holz-Bretter mit Nägeln aus einer Nagelpistole miteinander verbunden werden. Die Anzahl der zu verwendeten Nägel
+soll dabei im Bereich 1 bis 5 liegen. Diese Anzahl ist einstellbar.
+
+Vorgang:
+1. Die beiden Bretter werden über das Band bis zur Position am Endschalter S2 transportiert
+2. Die Nagelpistole fährt in die vordere Endlage und schließt einen Nagel in die Bretter.
+3. Je nach eingestellten Anzahl an Nägeln wird der Bandmotor für 400ms eingeschaltet und der nächste Nagel gesetzt. Damit muss der Endschalter S2 immer betätigt sein.
+   Ist dies nicht mehr der Fall, dann wrid kein Nagel mehr eingesetzt.
+4. Der Bandmotor wird eingeschaltet, bis der Endschalter S3 meldet, dass die Bretter an der Entnahmeposition sind
+*)
+
+IF "Taster_Steuerung_Ein" AND "Taster_Steuerung_Aus" THEN
+    "Merker_Steuerung_An" := TRUE;
+    "Lampe_Steuerung_Ein" := TRUE;
+ELSIF NOT "Taster_Steuerung_Aus" THEN
+    "Merker_Steuerung_An" := FALSE;
+    "Lampe_Steuerung_Ein" := FALSE;
+    "Bandmotor" := FALSE;
+    "Nagelvorgang_Abgeschlossen" := FALSE;
+    "Nagelpistole_nach_unten" := FALSE;
+    "Nagelvorgang" := FALSE;
+END_IF;
+
+// Im ersten Schritt wird eine Platte bis zum Endschalter S2 transportiert. Da der Nagelvorgang_abgeschlossen FALSE ist, weil noch kein Nagel geschossen wurde
+// wird der folgende Codeausschnitt durchgefürhrt. Wenn es den Endschalter S2 erreicht wird der Bandmotor ausgeschalten. Der Nagelvorgang findet außerdem nicht statt
+
+IF "Merker_Steuerung_An" AND NOT "Endschalter_S2" AND NOT "Nagelvorgang_Abgeschlossen" AND NOT "Nagelvorgang" THEN
+    "Bandmotor" := TRUE;
+ELSIF "Merker_Steuerung_An" AND "Endschalter_S2" AND NOT "Nagelvorgang_Abgeschlossen" AND NOT "Nagelvorgang" THEN
+    "Bandmotor" := FALSE;
+END_IF;
+
+// Die Platte hat den Endschalter erreicht, der Nagelvorgang kann beginnen in dem der Merker Nagelvorgang aug True gesetzt wird
+
+IF "Merker_Steuerung_An" AND "Endschalter_S2" AND NOT "Nagelvorgang_Abgeschlossen" AND NOT "Nagelvorgang" THEN
+    "Nagelvorgang" := TRUE;
+    "lauf_var" := 1;
+    "Timer_Out" := FALSE; 
+    "Flankenmerker_neg" := TRUE;
+    (*
+    Dies ist eine Vorkehrung damit im ersten durchlauf Impulstrigger_neg in Zeile 76 nicht erfüllt wird. Sonst wäre die Bedingung in Zeile 83 erfüllt
+    und die Laufvariable um 1 erhöht. Im Nächsten zyklus wird die Bedingung 54 erfüllt und das und im übernächsten Zyklus das IF Statement in Zeile 52
+    verlassen.
+    *)
+END_IF;
+
+//Durch das setzen des Merker Nagelvorgang auf true wird die vorherige IF Bedingung nicht erfüllt. Diese können den Bandmotor nicht mehr ansteuern.
+//Somit kann der nächste Schritt erfolgen. Wenn die Bretter die Position S2 haben, werden sie genagelt.
+
+IF "Merker_Steuerung_An" AND "Endschalter_S2" AND NOT "Nagelvorgang_Abgeschlossen" AND "Nagelvorgang" THEN
+    
+    IF "lauf_var" > WORD_TO_INT("Anzahl_Nagel") THEN
+        "Nagelvorgang" := FALSE;
+        "Nagelvorgang_Abgeschlossen" := TRUE;
+    END_IF;
+    
+    IF "lauf_var" <= WORD_TO_INT("Anzahl_Nagel") THEN
+        
+        IF NOT "Endschalter_S1" AND NOT "Timer_Out" THEN // Wenn der Timer läuft soll dies nicht erfüllt sein.
+            "Nagelpistole_nach_unten" := TRUE;
+            "Timer_Trigger" := FALSE;
+        ELSIF "Endschalter_S1" AND NOT "Timer_Out" THEN
+            "Nagelpistole_nach_unten" := FALSE;
+            "Timer_Trigger" := TRUE; // Nachdem die Pistole hochgefahren wird, soll der Timer Starten
+        END_IF;
+        IF "lauf_var" <= WORD_TO_INT("Anzahl_Nagel") THEN
+            "IEC_Timer_0_DB".TP(IN := "Timer_Trigger",
+                                PT := t#400ms,
+                                Q => "Timer_Out");
+            
+            "Impulsmerker_pos" := "Timer_Out" AND NOT "Flankenmerker_pos";
+            "Flankenmerker_pos" := "Timer_Out";
+            
+            "Impulsmerker_neg" := NOT "Timer_Out" AND NOT "Flankenmerker_neg";// Erkennen von Flanken, weil Timer_Out ist über mehrere Zyklen auf FALSE
+            "Flankenmerker_neg" := NOT "Timer_Out"; // Bedingung 83 wäre dann über mehrere Zyklen erfüllt und nach max 5 zyklen wäre die Bedingung in 52
+            // nicht mehr erfüllt ohne jemals die geforderte Anzahl an Nägel eingesetzt zu haben
+            IF "Impulsmerker_pos" THEN
+                "Bandmotor" := TRUE;
+            END_IF;
+            
+            IF "Impulsmerker_neg" THEN
+                "Bandmotor" := FALSE;
+                "Timer_Trigger" := FALSE;
+                "Timer_Out" := FALSE;
+                "lauf_var" := "lauf_var" + 1;
+            END_IF;
+            
+        END_IF;
+    END_IF;
+    
+    
+END_IF;
+
+//Nagelvorgang beendet
+IF "Merker_Steuerung_An" AND NOT "Endschalter_S3" AND "Nagelvorgang_Abgeschlossen" AND NOT "Nagelvorgang" THEN
+    "Bandmotor" := TRUE;
+END_IF;
+
+//Vorgang beendendet
+IF "Merker_Steuerung_An" AND "Endschalter_S3" AND "Nagelvorgang_Abgeschlossen" AND NOT "Nagelvorgang" THEN
+    "Nagelvorgang_Abgeschlossen" := FALSE;
+    "Nagelvorgang" := FALSE;
+END_IF;
+
+    
