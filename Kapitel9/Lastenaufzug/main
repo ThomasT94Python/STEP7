@@ -1,0 +1,78 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Das SPS Programm für folgende Anordnung soll erstellt werden: Ein Lastenaufzug kann 3 Stockwerke anfahren. Das Ziel des
+Stockwerkes wird über je eine Drucktaste angewählt und durch eine Lampe angezeigt. Die Anwahl ist nur möglich, wenn das Gitter
+des Lastenaufzuges geschlossen ist und der Aufzug nicht fährt. Es kann immer nur ein Stockwerk angewählt werden. Der Aufzug fährt
+mit Drücken einer Start-Taste auf das angewählte Stockwerk. Hat der Aufzug das Stockwerk erreicht, erlischt die Anwahl des
+Stockwerkes. Die Fahrbewegung des Aufzuges wird über je eine Lampe für die Richtung angezeigt.
+*)
+
+// Überprüfung ob das Gitter geschlossen ist und der Motor aus ist
+// Merker_Gitter_und_MotorAus = 1, wenn das Gitter geschlossen ist und Motor_nach_oben und Motor_nach_unten gleich 0 sind
+"Merker_Gitter_und_MotorAus" := "Sensor_Gitter_geschlossen" AND NOT "Motor_nach_oben" AND NOT "Motor_nach_unten";
+
+//Merker für das ausgewählte Stockwerk
+IF "Taster_Stockwerk_1" AND "Merker_Gitter_und_MotorAus" THEN
+    "Merker_Stock_1" := TRUE;
+    "Merker_Stock_2" := FALSE;
+    "Merker_Stock_3" := FALSE;
+ELSIF "Taster_Stockwerk_2" AND "Merker_Gitter_und_MotorAus" THEN
+    "Merker_Stock_1" := FALSE;
+    "Merker_Stock_2" := TRUE;
+    "Merker_Stock_3" := FALSE;
+ELSIF "Taster_Stockwerk_3" AND "Merker_Gitter_und_MotorAus" THEN
+    "Merker_Stock_1" := FALSE;
+    "Merker_Stock_2" := FALSE;
+    "Merker_Stock_3" := TRUE;
+END_IF;
+
+// Die Vorwahl anzeigen
+"Lampe_Stockwerk_1" := "Merker_Stock_1";
+"Lampe_Stockwerk_2" := "Merker_Stock_2";
+"Lampe_Stockwerk_3" := "Merker_Stock_3";
+
+"Lampe_Gitter_geschlossen" := "Sensor_Gitter_geschlossen";
+
+//Registriere Startimpuls
+"Impulsmerker" := "Taster_Start_Aufzug" AND NOT "Flankenmerker";
+"Flankenmerker" := "Taster_Start_Aufzug";
+
+IF "Impulsmerker" AND "Merker_Gitter_und_MotorAus" THEN
+    "Motor_Bewegung" := TRUE;
+END_IF;
+
+// Erster Stock wurde angewählt
+IF NOT "Sensor_Aufzug_in_S1" AND "Merker_Stock_1" AND "Motor_Bewegung" THEN
+    "Motor_Bewegung" := FALSE;
+    "Lampe_Stockwerk_1" := FALSE;
+    "Merker_Stock_1" := FALSE;
+    "Motor_Stop"();
+ELSIF "Sensor_Aufzug_in_S1" AND "Merker_Stock_1" AND "Motor_Bewegung" THEN
+    "Motor_runter"();
+END_IF;
+
+// Zweiter Stock wurde angewählt
+IF NOT "Sensor_Aufzug_in_S2" AND "Merker_Stock_2" AND "Motor_Bewegung" THEN
+    "Motor_Bewegung" := FALSE;
+    "Lampe_Stockwerk_2" := FALSE;
+    "Merker_Stock_2" := FALSE;
+    "Motor_Stop"();
+ELSIF NOT "Sensor_Aufzug_in_S1" AND "Merker_Stock_2" AND "Motor_Bewegung" THEN
+    "Motor_rauf"();
+ELSIF NOT "Sensor_Aufzug_in_S3" AND "Merker_Stock_2" AND "Motor_Bewegung" THEN
+    "Motor_runter"();
+END_IF;
+
+// Dritter Stock wurde angewählt
+IF NOT "Sensor_Aufzug_in_S3" AND "Merker_Stock_3" AND "Motor_Bewegung" THEN
+    "Motor_Bewegung" := FALSE;
+    "Lampe_Stockwerk_3" := FALSE;
+    "Merker_Stock_3" := FALSE;
+    "Motor_Stop"();
+ELSIF "Sensor_Aufzug_in_S3" AND "Merker_Stock_3" AND "Motor_Bewegung" THEN
+    "Motor_rauf"();
+END_IF;
+
+
+
+
