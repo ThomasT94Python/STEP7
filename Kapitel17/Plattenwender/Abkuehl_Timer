@@ -1,0 +1,3 @@
+#IEC_Timer_0_Instance(IN:=#Sensor_IN,
+                      PT:=t#30s,
+                      Q=>#Lampe_Out);
