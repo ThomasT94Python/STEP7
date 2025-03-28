@@ -1,0 +1,20 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+Ein Durchflussmessgerät erfasst den Mengendurchfluss einer Flüssigkeit in Liter und liefert je 5 Luter einen
+positiven Impulst. Mir einer Taste wird das Ergebnis der letzten Messung auf 0 gesetzt. Zuvor soll aber der zuletzt
+gemessene Wert in das Ausgangswort AW0 geschrieben werden. Es wird sichergestellt, dass die Durchflussmenge
+im Ausgangswort keinen Überlauf erzeugt, so dass dies in der Programmierung nicht berücksichtigt werden muss
+*)
+
+"Mengen_Impuls_Merker" := "Impuls" AND NOT "Flankenmerker";
+"Flankenmerker" := "Impuls";
+
+
+"Mengen_Merker" := "Ausgabe_Liter";
+IF "Mengen_Impuls_Merker" AND NOT "Taster_Reset" THEN
+    "Mengen_Merker" := "Mengen_Merker" + 5;
+ELSIF "Taster_Reset" THEN
+    "Mengen_Merker" := 0;
+END_IF;
+"Ausgabe_Liter" := "Mengen_Merker";
