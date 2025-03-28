@@ -1,0 +1,40 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+Ein Behälter kann über zwei Pumpen gefüllt und manuell entleer werden. Der Behälter hat die beiden Füllstandsensoren
+S1 und D2. Wenn die Steuerung eingeschaltet ist, dann soll ich die Pumpe einschalten, sobald der Füllstand des Behälters
+den Sensor S1 unterschreite. Unterschreitet der Füllstand auch den Sensor S2, dann soll zusätzöoch die Pumpe P2 zugeschaltet
+werden. Die Sensoren haben den Status 0, wenn diese von Flüssigkeit umgeben sind.
+*)
+
+IF "Taster_Steuerung_Ein" AND "Taster_Steuerung_Aus" THEN
+    "Lampe_Steuerung_Ein" := TRUE;
+    "Steuerung_AN" := TRUE;
+END_IF;
+
+IF NOT "Taster_Steuerung_Ein" AND NOT "Taster_Steuerung_Aus" THEN
+    "Lampe_Steuerung_Ein" := FALSE;
+    "Steuerung_AN" := FALSE;
+    "PumpenSteuerung"(SensorWert := FALSE,
+                      PumpeOut => "Pumpe_P1");
+    "PumpenSteuerung"(SensorWert := FALSE,
+                      PumpeOut => "Pumpe_P2");
+END_IF;
+
+
+IF "Steuerung_AN" THEN
+    "PumpenSteuerung"(SensorWert := "S1_Sensor_Oben",
+                      PumpeOut => "Pumpe_P1");
+    "PumpenSteuerung"(SensorWert := "S2_Sensor_Unten",
+                      PumpeOut => "Pumpe_P2");
+END_IF;
+
+// Behälter ist voll, Steuerung wird beendet
+IF NOT "S1_Sensor_Oben" THEN
+    "Lampe_Steuerung_Ein" := FALSE;
+    "Steuerung_AN" := FALSE;
+    "PumpenSteuerung"(SensorWert := FALSE,
+                      PumpeOut => "Pumpe_P1");
+    "PumpenSteuerung"(SensorWert := FALSE,
+                      PumpeOut => "Pumpe_P2");
+END_IF;
