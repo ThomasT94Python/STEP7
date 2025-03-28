@@ -1,0 +1,28 @@
+#Range := (#Soll_IN * 2) / 100;
+IF #Range = 0 THEN
+    #Range := 1;
+END_IF;
+
+#Obere_Grenze := #Soll_IN + #Range;
+IF #Soll_IN > 0 THEN
+    #Untere_Grenze := #Soll_IN - #Range;
+ELSE
+    #Untere_Grenze := #Soll_IN;
+END_IF;
+
+IF #Ist_IN <= #Obere_Grenze AND NOT #Fullen_Stopp THEN
+    #Fullen_Out := TRUE;
+END_IF;
+
+IF #Ist_IN >= #Untere_Grenze AND NOT #Leeren_Stopp THEN
+    #Fullen_Out := FALSE;
+END_IF;
+
+IF #Ist_IN <= #Untere_Grenze THEN
+    #Fullen_Stopp := FALSE;
+    #Leeren_Stopp := TRUE;
+END_IF;
+IF #Ist_IN >= #Obere_Grenze THEN
+    #Fullen_Stopp := TRUE;
+    #Leeren_Stopp := FALSE;
+END_IF;
