@@ -1,0 +1,39 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+Ein Tor ist mit zwei Tastern ausgerüstet. Jeder Taster kann das Tor öffnen oder schließen. Der Antrieb der Torsteuerung
+schaltet sich jeweils über einen eingebauten Endschlater richtungsunabhängig selbständig ab. Ein Sicherheits-Schalter
+unterbricht bei Betätigung die Schließbewegung zbd öffnet das Tor. Ein erneutes Bewegen des Tores muss über einen Taster
+("auf" oder "zu") neu gestartet werden. Zur Lösung soll ein SR Glied verwendet werden
+*)
+
+"Betatigung" := "Taster_Tor_Auf_Zu1" OR "Taster_Tor_Auf_Zu2";
+
+// Fall wenn das Tor geschlossen ist, wird es beim Betätigen geöffnet
+IF "Betatigung" AND "Sicherheitsschalter" AND "Sensor_S1" AND NOT "Sensor_S2" THEN
+    "Motor_Tor_schliessen" := FALSE;
+    "Motor_Tor_offnen" := TRUE;
+END_IF;
+
+// Fall wenn das Tor offen ist, wird es beim Betätigen geschlossen
+IF "Betatigung" AND "Sicherheitsschalter" AND NOT "Sensor_S1" AND "Sensor_S2" THEN
+    "Motor_Tor_schliessen" := TRUE;
+    "Motor_Tor_offnen" := False;
+END_IF;
+
+//Rücksetztdominanz
+IF NOT "Sicherheitsschalter" THEN
+    "Motor_Tor_schliessen" := FALSE;
+    "Motor_Tor_offnen" := FALSE;
+END_IF;
+
+// Fall wenn das Tor sich in einem Zustand zwischen offen und geschlossen befindet, weil der Sicherheitsschalter
+// betätigt wurde
+
+IF NOT "Sicherheitsschalter" AND NOT "Sensor_S1" AND NOT "Sensor_S2" THEN
+    "Motor_Tor_schliessen" := FALSE;
+    "Motor_Tor_offnen" := TRUE;
+END_IF;
+
+
+
