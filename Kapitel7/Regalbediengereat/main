@@ -1,0 +1,115 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+Ein Regalbediengerät hat drei Stationen. Am jeder Station befinden sich ein Steuerpult und ein Endschalter, welcher
+über die Nocke ein Signal liefert. Jedes Steuerpult hat drei Tasten und je eine Signallampe zur Auswahö, an welche die
+Station der Werkzeugschlitten fahren soll. Die Tasten und die Lampen sind parallel zur SPS angeschlossen. Hat das RBG die
+angewählte Station erreicht wird das Stückgut durch die Bedienperson gewechselt und danach die Station quittiert. Die Quttier-
+Taste ist an jedem Pult mit einem eigenen Eingang an die SPS angeschlossen. Nach der Quittierung kann eine neue Station angewählt
+werden. Ist eine Station schon angewählt, si hat die Anwahl von einem anderen Pult keine Wirkung mehr. Die Fahrbewegung nach
+einem Not-Aus soll nicht berücksichtigt werden.
+*)
+
+
+//Bewegung zur Station_1. Die Bewegungsfreigage wird verriegelt und ein Ziel wird als Marker gesetzt um weitere Bewegungen zu
+//verriegeln
+IF "Taster_Auswahl_Station_1" AND "Beweungsfreigabe" AND NOT "Nockenschalter_Station_1" THEN
+    "Motor_vor" := FALSE;
+    "Motor_zurueck" := TRUE;
+    "Beweungsfreigabe" := FALSE;
+    "Ziel_Station_1" := TRUE;
+    "Ziel_Station_2" := FALSE;
+    "Ziel_Station_3" := FALSE;
+END_IF;
+
+IF "Ziel_Station_1" AND "Nockenschalter_Station_1" THEN
+    "Ziel_Station_1" := FALSE;
+    "Motor_zurueck" := FALSE;
+END_IF;
+
+
+// Bewegungsrichtung Station 3
+IF "Taster_Auswahl_Station_3" AND "Beweungsfreigabe" AND NOT "Nockenschalter_Station_3" THEN
+    "Motor_vor" := TRUE;
+    "Motor_zurueck" := FALSE;
+    "Beweungsfreigabe" := FALSE;
+    "Ziel_Station_1" := FALSE;
+    "Ziel_Station_2" := FALSE;
+    "Ziel_Station_3" := TRUE;
+END_IF;
+
+IF "Ziel_Station_3" AND "Nockenschalter_Station_3" THEN
+    "Ziel_Station_3" := FALSE;
+    "Motor_vor" := FALSE;
+END_IF;
+
+//Die Fahrtrichtung um Station 2 hängt von der aktuellen Position des Gerätes ab
+
+
+IF "Taster_Auswahl_Station_2" AND "Beweungsfreigabe" AND NOT "Nockenschalter_Station_2" THEN
+    "Beweungsfreigabe" := FALSE;
+    "Ziel_Station_1" := FALSE;
+    "Ziel_Station_2" := TRUE;
+    "Ziel_Station_3" := FALSE;
+END_IF;
+
+// Gerät befindet sich am Ort Station 1 und muss daher vor
+IF "Ziel_Station_2" AND "Nockenschalter_Station_1" THEN
+    "Motor_vor" := TRUE;
+    "Motor_zurueck" := FALSE;
+END_IF;
+// Gerät befindet sich am Ort Station 3 und muss daher zurück
+IF "Ziel_Station_2" AND "Nockenschalter_Station_3" THEN
+    "Motor_vor" := FALSE;
+    "Motor_zurueck" := TRUE;
+END_IF;
+// Gerät hat das Ziel erreicht
+IF "Ziel_Station_2" AND "Nockenschalter_Station_2" THEN
+    "Motor_vor" := FALSE;
+    "Motor_zurueck" := FALSE;
+    "Ziel_Station_2" := FALSE;
+END_IF;
+
+//Anzeigenidikator
+IF "Nockenschalter_Station_1" AND NOT "Beweungsfreigabe" THEN
+    "Signal_Lampe_L1" := TRUE;
+    "Signal_Lampe_L2" := FALSE;
+    "Signal_Lampe_L3" := FALSE;
+ELSIF "Nockenschalter_Station_2" AND NOT "Beweungsfreigabe" THEN
+    "Signal_Lampe_L1" := FALSE;
+    "Signal_Lampe_L2" := TRUE;
+    "Signal_Lampe_L3" := FALSE;
+ELSIF "Nockenschalter_Station_3" AND NOT "Beweungsfreigabe" THEN
+    "Signal_Lampe_L1" := FALSE;
+    "Signal_Lampe_L2" := FALSE;
+    "Signal_Lampe_L3" := TRUE;
+ELSE
+    "Signal_Lampe_L1" := FALSE;
+    "Signal_Lampe_L2" := FALSE;
+    "Signal_Lampe_L3" := FALSE;
+END_IF;
+
+IF ("Nockenschalter_Station_1" AND "Taster_Station_1_Quittung") OR ("Nockenschalter_Station_2" AND "Taster_Station_2_Quittung") OR ("Nockenschalter_Station_3" AND "Taster_Station_3_Quittung") THEN
+    "Beweungsfreigabe" := TRUE;
+END_IF;
+
+IF "SCHLAGTASTER_NOT_AUS" THEN
+    "Motor_vor" := FALSE;
+    "Motor_zurueck" := FALSE;
+    "Beweungsfreigabe" := TRUE;
+    "NOTAUS_GEDRUCKT" := TRUE;
+END_IF;
+
+IF NOT "SCHLAGTASTER_NOT_AUS" AND "NOTAUS_GEDRUCKT" THEN
+    "Motor_vor" := FALSE;
+    "Motor_zurueck" := TRUE;
+    "Beweungsfreigabe" := FALSE;
+    "Ziel_Station_1" := TRUE;
+    "Ziel_Station_2" := FALSE;
+    "Ziel_Station_3" := FALSE;
+    "NOTAUS_GEDRUCKT" := FALSE;
+END_IF;
+
+
+
+
