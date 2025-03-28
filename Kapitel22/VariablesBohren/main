@@ -1,0 +1,128 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+In ein Dreibacken Drehfutter wird ein Werkstück eingespannt, welches mit einem Bohrloch zu versehen ist. Der Bediener kann über die Auswagl der Programmnummer
+selektieren, an welcher Stekke das Bohrloch zu platzieren ist. Es stehen die Programmnummern 1 bis 5 zur Auswahl. Dabei sollen die Löcher wie folgt platziert werden:
+
+-) Programmnummer 1: 96°
+-) Programmnummer 2: 123°
+-) Programmnummer 3: 156°
+-) Programmnummer 4: 257°
+-) Programmnummer 5: 302°
+
+Die momentane Position des Drehfutters wird über einen Sensore im Bereich 0° - 360° als Integerwert geliefert. Die Spannbacken fahren nach vorne, wenn der entsprechende
+Ausgang gesetzt ist. Bei Status 0 gahren sie wieder zurück (Federrückstellung). Gleiches gilt für die Bohrmaschine
+
+Beschreibung des Vorgangs:
+-) Steuerun EIN
+-) Auswahl der Programmnummer
+-) Start
+-) Spannbacken fahren nach vorne
+-) Bohrer wird eingeschaltet und das Drehfutter fährt an die Position.
+-) Position erreicht, Bohrmaschine fährt nach vorne.
+-) Bohrmaschine hat die vordere Endlage erreicht.
+-) Bohrer fährt zurück und Bohrer schaltet sich aus
+-) Drehfutter fährt in Pos. 0 bzw 360 Spannbacken fahren zurück.
+
+Nun kann wieder eine Programmnummer selektiert werden und Start betätigt werden.
+*)
+
+// Nutzung eines eine SR Glied das Ein und Ausschalten
+IF "Taster_Steuerung_Ein" THEN
+    "Merker_Steuerung_An" := TRUE;
+END_IF;
+IF NOT "Taster_Steuerung_Aus" THEN
+    "Merker_Steuerung_An" := FALSE;
+END_IF;
+
+IF "Merker_Steuerung_An" THEN
+    "Lampe_Steuerung_Ein" := TRUE;
+    // Auswahl der Programmnummer mittels Start. Weiters soll dann die Starttaste verriegelt werden bis die Bohrung beendet ist. Somit wird verhindert dass 
+    // während des Prozess eine andere Programmnummer gewählt wird. Anhand der Programmnummer wird der dazugehörtige Winkel in Merker_Winkel gespeichert.
+    IF "Taster_Start" AND NOT "Start_Taste_Sperre" THEN
+        "Start_Taste_Sperre" := TRUE;
+        "Zustand" := 0;
+        CASE "Programmnummer" OF
+            1:
+                "Merker_Winkel" := 96;
+            2:
+                "Merker_Winkel" := 123;
+            3:
+                "Merker_Winkel" := 156;
+            4:
+                "Merker_Winkel" := 257;
+            5:
+                "Merker_Winkel" := 302;
+            ELSE
+                "Merker_Winkel" := 0;
+        END_CASE;
+    END_IF;
+    // Schrittkettenprogrammierung
+    IF "Start_Taste_Sperre" AND "Zustand" = 0 THEN //Spannbacken fahren nach vorne
+        "Spannbacken_vor" := TRUE;//Aktion
+        IF "S1_SB_1_vorn" AND "S2_SB_2_vorn" AND "S3_SB_3_vorn" THEN // Transitionsbedingung
+            "Zustand" := 1;
+        END_IF;
+    END_IF;
+    
+    IF "Start_Taste_Sperre" AND "Zustand" = 1 THEN // Bohrer wird eingeschaltet und das Drehfutter fährt an die Position
+        "Bohrer_Ein_Aus" := TRUE;
+        "Drehung_FC"(Initialwinkel_IN := "Pos_Drehfutter",
+                     Zielwinkel_IN := "Merker_Winkel",
+                     Drehen_Out => "Drehfutter_drehen");
+        IF  "Pos_Drehfutter" = "Merker_Winkel" THEN
+            // Transitionsbedingung
+            "Zustand" := 2;
+        END_IF;
+    END_IF;
+    
+    IF "Start_Taste_Sperre" AND "Zustand" = 2 THEN
+        // Bohrmaschine fährt nach vorne
+        "Bohrer_nach_vorn" := TRUE;
+        IF "S7_Bohrer_vorn" THEN
+            // Transitionsbedingung: Bohrmaschine hat vordere Endlage erreicht
+            "Zustand" := 3;
+        END_IF;
+    END_IF;
+    
+    IF "Start_Taste_Sperre" AND "Zustand" = 3 THEN
+        // Bohrmaschine fährt zurück und schaltet sich aus
+        "Bohrer_nach_vorn" := FALSE;
+        IF "S8_Bohrer_hinten" THEN
+            // Transitionsbedingung und Bohrmaschine schaltet sich aus
+            "Bohrer_Ein_Aus" := FALSE;
+            "Zustand" := 4;
+        END_IF;
+    END_IF;
+    
+    IF "Start_Taste_Sperre" AND "Zustand" = 4 THEN
+        // Drehfutter fährt in Pos 0 bzw 360 und Spannbacken fahren Zurück
+        "Drehung_FC"(Initialwinkel_IN := "Pos_Drehfutter", Zielwinkel_IN := 0, Drehen_Out => "Drehfutter_drehen");
+        IF "Pos_Drehfutter" = 0 OR "Pos_Drehfutter" = 360 THEN
+            // Spannbacken fahren zurück nach dem die gwünschte Positions erreicht wurde
+            "Spannbacken_vor" := FALSE;
+        END_IF;
+        IF NOT "S1_SB_1_vorn" AND NOT "S2_SB_2_vorn" AND NOT "S3_SB_3_vorn" THEN
+            // Transitionsbedingung
+            "Zustand" := 5;
+        END_IF;
+        
+    END_IF;
+    
+    IF "Start_Taste_Sperre" AND "Zustand" = 5 THEN
+        // Lösen der Start Tasten Sperre
+        "Start_Taste_Sperre" := FALSE;
+    END_IF;
+    
+    
+    
+ELSIF NOT "Merker_Steuerung_An" THEN
+    "Lampe_Steuerung_Ein" := FALSE;
+    "Bohrer_nach_vorn" := FALSE;
+    "Drehfutter_drehen" := FALSE;
+    IF "S8_Bohrer_hinten" THEN
+        "Bohrer_Ein_Aus" := FALSE;
+        "Spannbacken_vor" := FALSE;
+    END_IF;
+    "Zustand" := 5;
+END_IF;
