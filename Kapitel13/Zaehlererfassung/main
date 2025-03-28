@@ -1,0 +1,22 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Ein Materialband hat Y-förmige Abgänge. Ein Scanner erkennt die Gruppenzugehörigkeit des Materials und steuert entsprechend den Abscheider auf dem Band.
+Ein Zählwerk pro Richtung soll jeweils die Bewegung der Weiche zählen. Die Zähler können gemeinsam mit der Taste auf Null gestellt werden. Das
+Zählergebnis für die Gruppe 1 wird an AW0 und das Zählerergebnis für die Gruppe 2 an AW2 ausgegeben.
+*)
+
+(*
+Die Flankenerkennung soll einen Anstieg der Flanke am Eingang S1 und S2 detektieren. Bei jeder positiven Flanke wird der Zählerstand der dazugehörigen
+Gruppe erhöht.
+*)
+
+"Impulsmerker_1" := "Weiche_Gruppe_1" AND NOT "Flankenmerker_1";
+"Flankenmerker_1" := "Weiche_Gruppe_1";
+
+"Impulsmerker_2" := "Weiche_Gruppe_2" AND NOT "Flankenmerker_2";
+"Flankenmerker_2" := "Weiche_Gruppe_2";
+
+"Zaehleranzeige_Gruppe_1" := WORD_TO_INT(S_CU(C_NO := 0, CU := "Impulsmerker_1", R := "Taster_Reset_Zaehler"));
+"Zaehleranzeige_Gruppe_2" := WORD_TO_INT(S_CU(C_NO := 1, CU := "Impulsmerker_2", R := "Taster_Reset_Zaehler"));
+
+    
