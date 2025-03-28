@@ -1,0 +1,28 @@
+"IEC_Timer_0_DB".TP(IN:=#Tas1,
+                    PT:=#Time1,
+                    Q=> #Stat1);
+"IEC_Timer_0_DB_1".TP(IN:=#Tas2,
+                      PT:=#Time2,
+                      Q=> #Stat2);
+"IEC_Timer_0_DB_2".TP(IN:= #Tas3,
+                      PT:= #Time3,
+                      Q=>#Stat3);
+"IEC_Timer_0_DB_3".TP(IN:=#Tas4,
+                      PT:=#Time4,
+                      Q=>#Stat4);
+
+
+IF #Tas1 THEN
+    #Stat1 := TRUE;
+END_IF;
+IF #Tas2 THEN
+    #Stat2 := TRUE;
+END_IF;
+IF #Tas3 THEN
+    #Stat3 := TRUE;
+END_IF;
+IF #Tas4 THEN
+    #Stat4 := TRUE;
+END_IF;
+
+
