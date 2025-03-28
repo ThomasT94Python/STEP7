@@ -1,0 +1,5 @@
+IF #SensorWert THEN
+    #PumpeOut := TRUE;
+ELSE
+    #PumpeOut := FALSE;
+END_IF;
