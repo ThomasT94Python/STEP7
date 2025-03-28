@@ -1,0 +1,17 @@
+(*
+Wenn die Pumpe eingeschaltet ist, der Sensor S1 wahr zurückgibt und die Entleerkappe geschlossen ist, wird die Pumpe aktiviert
+*)
+
+IF "Taster_Pumpe_ein" AND "S1_Sensor_Schmutzbehaelter_voll" AND "S2_Entleerkappe_hinten" AND NOT "S3_Entleerkappe_vorn" THEN
+    "Pumpe" := TRUE;
+    "Lampe_Pumpe_ist_an" := TRUE;
+END_IF;
+
+(*
+Wenn der Taster Pumpe aus gedrückt wird oder der Behälter voll ist, dann wird eie Pumpe ausgeschalten
+*)
+
+IF NOT "Taster_Pumpe_aus" OR NOT "S1_Sensor_Schmutzbehaelter_voll" OR NOT "S2_Entleerkappe_hinten" THEN
+    "Pumpe" := FALSE;
+    "Lampe_Pumpe_ist_an" := FALSE;
+END_IF;
