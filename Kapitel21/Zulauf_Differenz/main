@@ -1,0 +1,24 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+Der Zufluss über zwei Zuläufe kann mit Hilfe von Ventilen manuell gesteuert werden. Eine Anzeige mit drei Lampen soll dabei den Unterschied der beiden Zuläufe 
+signalisieren. Die Messung der Zuläufe erfolgt über Durchflussmesser, die einen Wert von 0 bis 10 liefern. Je nach Differenz soll ein grüne, gelbe oder rote Lampe
+leichten. Die grüne Lampe leuctet, wenn eine Differenz von <= 1 besteht. Die gelbe Lampe leuchtet, wenn eine Differenz im Bereich 1 > x <= 4 vorhandem ist. Die rote
+Lampe leuchtet bei einer Differenz von > 4.
+*)
+
+"Differenz_Ergebnis" := DINT_TO_WORD( ABS(WORD_TO_DINT("Sensor_Durchfluss_A") - WORD_TO_DINT("Sensor_Durchfluss_B")));
+
+IF "Differenz_Ergebnis" <= 1 THEN
+    "Lampe_Differenz_1" := TRUE;
+    "Lampe_Differenz_2" := FALSE;
+    "Lampe_Differenz_3" := FALSE;
+ELSIF 1 < "Differenz_Ergebnis" AND "Differenz_Ergebnis" <= 4 THEN
+    "Lampe_Differenz_1" := FALSE;
+    "Lampe_Differenz_2" := TRUE;
+    "Lampe_Differenz_3" := FALSE;
+ELSIF 4 < "Differenz_Ergebnis" THEN
+    "Lampe_Differenz_1" := FALSE;
+    "Lampe_Differenz_2" := FALSE;
+    "Lampe_Differenz_3" := TRUE;
+END_IF;
