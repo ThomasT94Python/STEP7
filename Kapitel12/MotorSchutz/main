@@ -1,0 +1,29 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Wird ein Motor eingeschaltet, so ist über eine thermische Absicherung der Motor auszuschalten, wenn dieser Thermoschutz über drei Sekunden
+eingeschaltet bleibt. Danach kann der Motor erst wieder eingeschlatet werden, wenn der Thermoschutz abgefallen ist und zusätzlich eine
+Minute vergangen ist.
+*)
+
+IF "Taster_Motor_ein" AND "Taster_Motor_aus" THEN
+    "Motor" := TRUE;
+ELSIF NOT "Taster_Motor_aus" THEN
+    "Motor" := FALSE;
+END_IF;
+
+// Überprüfe ob Motor Schutz Taster mindestens drei Sekunden lang betätigt ist mit dem Setzen von Merker_Schutz_Modus. Hierfür wird ein TON 
+// Einschaltverzögerung verwendet. Wenn der Eingang mindestens drei Sekunden auf 1 ist, springt der Ausgang auf 1. Beim Loslassen wird der
+// Ausgang zurückgesetzt
+"IEC_Timer_0_DB".TON(IN:= NOT "Motorschutz_Schalter",
+                     PT:=t#3s,
+                     Q=> "Merker_Schutz_Modus" );
+
+// Dieser Puls von Merker_Schutz_Modus wird verwendet um einen Impulstimer zu starten, mit dem der Motor vor dem Einschalten eine Minute lang
+// gesperrt wird
+"IEC_Timer_0_DB_1".TP(IN:="Merker_Schutz_Modus",
+                      PT:= t#60s,
+                      Q=> "Merker_Motor_Sperre");
+
+IF "Merker_Motor_Sperre" THEN
+    "Motor" := FALSE;
+END_IF;
