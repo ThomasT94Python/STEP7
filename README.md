@@ -20,4 +20,34 @@ Kapitel 10:
   Bausteinparamter: Übergabe von Werten oder Operanden an einem Baustein und Rückgabe von Werten eines aufgerufenden Bausteins
 
 Kapitel 11:
-  SIMATIC-Zeiten: S_PULSE
+  SIMATIC-Zeiten: S_PULSE, S_ODT
+
+Kapitel 12:
+  IEC Zeitfunktionen: TP, TON, TOF
+
+Kapitel 13:
+  SIMATIC-Zähler: S_CU, S_CD
+
+Kapitel 14:
+  IEC Zählfunktionen: CTU, CTD, CTUD
+
+Kapitel 16:
+  Zugriff auf eine Variable über eine Sicht (AT - Überlagerung)
+
+Kapitel 17:
+  Funktionsbaustein, Instanz DB, Einzelinstanz, Multiinstanz
+
+Kapitel 20:
+  Vergleicher: =, <, >, >=, <=, <>
+
+Kapitel 21:
+  Arithmetische Operationen
+
+Kapitel 22:
+  Sprungoperationen GOTO
+
+Kapitel 24:
+  Analogwertverarbeitung: Einlesen eines analogen Sensorwertes und Umsetzung in ein Digitalwert
+
+Kapitel 25:
+  Zweipunktregelung
