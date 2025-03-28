@@ -1,0 +1,9 @@
+(*
+Diese FC überprüft ob der Schmutzbehälter voll ist
+*)
+
+IF "S1_Sensor_Schmutzbehaelter_voll" THEN
+    "Lampe_Schmutzbehealter_ist_voll" := FALSE;
+ELSE
+    "Lampe_Schmutzbehealter_ist_voll" := TRUE;
+END_IF;
