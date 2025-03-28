@@ -1,0 +1,38 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+In einer Pressspan-Plattenfertigung kommen die gepresstem Platten aus der Presse über einen Rollengang in einen Wender. Der Wender dreht sich selbst und verteilt
+so die Platten auf einen anderen Rollengang. Es ein ein FB geschrieben werden, der sich den Eintritt der Platte in den Wender merkt und und über Lampen anzeigt,
+wenn die Abkühlzeit angelaufen ist und die Platte somit entladen werden kann. Die Platte darf dann beim Erreichen der gegenüberliegenden Position auf den nöchsten
+Rollenband abgelegt werden. Der Plattenwender kann 8 Platten aufnehmen. Die Abkühlzeit der Platte beträgt mindestens 30 sekunden. Das Be- und Entladen wird manuell
+durchgeführt und ist nicht Bestandteil des SPS-Programms
+*)
+
+"Abkuehl_Timer_DB"(Sensor_IN:="S1_Wender",
+                   Lampe_Out=>"Lampe_P1");
+
+"Abkuehl_Timer_DB_1"(Sensor_IN:="S2_Wender",
+                     Lampe_Out=>"Lampe_P2");
+
+"Abkuehl_Timer_DB_2"(Sensor_IN:="S3_Wender",
+                     Lampe_Out=>"Lampe_P3");
+
+"Abkuehl_Timer_DB_3"(Sensor_IN:="S4_Wender",
+                     Lampe_Out=>"Lampe_P4");
+
+"Abkuehl_Timer_DB_4"(Sensor_IN:="S5_Wender",
+                     Lampe_Out=>"Lampe_P5");
+
+"Abkuehl_Timer_DB_5"(Sensor_IN:="S6_Wender",
+                     Lampe_Out=>"Lampe_P6");
+
+"Abkuehl_Timer_DB_6"(Sensor_IN:="S7_Wender",
+                     Lampe_Out=>"Lampe_P7");
+
+"Abkuehl_Timer_DB_7"(Sensor_IN:="S8_Wender",
+                     Lampe_Out=>"Lampe_P8");
+
+
+
+
+
+
