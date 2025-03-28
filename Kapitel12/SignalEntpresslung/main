@@ -1,0 +1,21 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+Die erssten vier Eingänge eines Eingabemoduls mit der Byte-Adresse 0 sollen entprellt werden. Jedem Eingang wird ein Timer zugeordet. Die so
+entstehenden gültigen und entprellten Signale, werden jeweils einem Ausgangsbit zugewiesen. Die minimale Entprellzeit beträgt 250ms. Es soll eine
+FC mit vier Eingangs und vier Ausgangsparameter für die Signale und vier weiterer Eingangsparameter für die Entprellzeiten vom Datentype Tome
+geschrieben werden.
+*)
+
+"Entpreller"(Tas1 := "Taster_1",
+             Tas2 := "Taster_2",
+             Tas3 := "Taster_3",
+             Tas4 := "Taster_4",
+             Time1 := t#1000ms,
+             Time2 := t#1000ms,
+             Time3 := t#1000ms,
+             Time4 := t#100ms,
+             Stat1 => "Lampe_Status_S1",
+             Stat2 => "Lampe_Status_S2",
+             Stat3 => "Lampe_Status_S3",
+             Stat4 => "Lampe_Status_S4");
