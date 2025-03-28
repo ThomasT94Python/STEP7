@@ -1,0 +1,47 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Ein Rollenband ist dauerhaft eingeschaltet. Auf ihm werden Stahlstangen mit unterschiedlicher Länge transportiert. Diese Stangen sollen in drei
+Längenkategorien eingeteilt werden. Dazu ist über dem Band ein Mitnehmer angebracht, welcher von einer transportierten Stange bis zum dessen Anschlag
+mitgeführt wird. Danach klappt er nach oben weg und fährt zu seiner Anfangsposition zurück. An dem Mitnehmer ist ein analoger Sensor angebracht, der am
+Anschlag 10V und an der Anfangsposition 0V liefert. Dabei entspricht der Weg des Mitnehmer einer Länge von 250cm. Wenn der Mitnehmer nach oben wegklappt,
+wird der Sensor S1 betätigt. Ist das Ende der Stange erreicht, so wird S1 wieder freigegeben. Somit muss der Wert des analogen Sensor zu dem Zeitpunkt erfasst
+werden, wenn S1 eine negative Flanke liefert. Der nun erfasste analoge Wert ist vom max. Wert 10V abzuziehen. Der dadurch ermittelte Wert entspricht der Länge
+der Stange.
+
+Kategorie 1: Länge der Stange liegt im Bereich 120cm bis 250cm
+Kategorie 2: Länge der Stange liegt im Bereich 60cm bis < 120cm
+Kategorie 3: Länge der Stange liegt im Bereich < 60cm
+*)
+
+"Impulsmerker_pos" := "Sensor_S1" AND NOT "Flankenmerker_pos";
+"Flankenmerker_pos" := "Sensor_S1";
+
+"Impulsmerker_neg" := NOT "Sensor_S1" AND "Flankenmerker_neg";
+"Flankenmerker_neg" := "Sensor_S1";
+
+IF "Impulsmerker_pos" THEN
+    "Messung_1" := "Analog_Sensor"; // Misst die höchste Spannung, weil dieser am Anschlag misst, theoretisch ist dieser Wert immer gleich
+    "Merker_Berechnung" := TRUE;
+END_IF;
+IF "Impulsmerker_neg" AND "Merker_Berechnung" THEN
+    "Messung_2" := "Analog_Sensor"; // Messsung, die für die Längenmessung relebant ist
+    
+    "Messwert_V" := INT_TO_DINT("Messung_1" - "Messung_2"); // Vergrößerung des Zahlenbereichs
+    
+    "Messwert_cm" := DINT_TO_INT("Messwert_V"*250/INT_TO_DINT("Messung_1"));
+
+    IF 120 <= "Messwert_cm" AND "Messwert_cm" <= 250 THEN
+        "Lampe_Kat1" := TRUE;
+        "Lampe_Kat2" := FALSE;
+        "Lampe_Kat3" := FALSE;
+    ELSIF 60 <= "Messwert_cm" AND "Messwert_cm" < 120 THEN
+        "Lampe_Kat1" := FALSE;
+        "Lampe_Kat2" := TRUE;
+        "Lampe_Kat3" := FALSE;
+    ELSIF "Messwert_cm" < 60 THEN
+        "Lampe_Kat1" := FALSE;
+        "Lampe_Kat2" := FALSE;
+        "Lampe_Kat3" := TRUE;
+    END_IF;
+    "Merker_Berechnung" := FALSE;
+END_IF;
