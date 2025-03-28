@@ -1,0 +1,4 @@
+"Motor_nach_oben" := TRUE;
+"Motor_nach_unten" := FALSE;
+"Lampe_Aufzug_nach_oben" := TRUE;
+"Lampe_Aufzug_nach_unten" := FALSE;
