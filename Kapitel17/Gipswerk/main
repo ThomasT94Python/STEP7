@@ -1,0 +1,18 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+In einem Gipswerk wird der Rohstein über zwei Rüttler einem Mahlwerk zugeführt. Dabei sind zwei unabhängige Rüttler vorhanden, die identische Funktionalitäten
+haben. Bei jedem Rüttler ist ein Sensor angebracht, welcher vorhandenes Material meldet. Ist kein Material mehr vorhanden, soll über eine einstellbare Zeit nachgerüttelt
+werden. Es soll ein FB geschrieben werden, der für alle beide Rüttler eingesetzt werden kann
+*)
+
+"Func_Rutteln_DB"(Material_IN:="Sensor_Ruttler_1",
+                  Nachlaufzeit_IN:="Nachlaufzeit_Ruttler_1"*1000, // Umwandlung von sekunden in Millisekunden
+                  Ruttel_OUT=>"Ruttler_1_Ein_Aus");
+
+"Func_Rutteln_DB_1"(Material_IN := "Sensor_Ruttler_2",
+                    Nachlaufzeit_IN := "Nachlaufzeit_Ruttler_2"*1000,
+                    Ruttel_OUT => "Ruttler_2_Ein_Aus");
+
+
+
