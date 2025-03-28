@@ -1,0 +1,56 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+Eine Fußgängerampel mit den Signalen gelb blinkend und rot soll programmiert werden. Wird die gelbe Anforderungstaste gedrückt, vergehen 10 Sekunden.
+Danach blinkt die Ampel für die Fahrzeuge (gelb) und geht dann für 30 Sekunden auf Rot. Danach blunkt die Ampel 10 Sekunden wieder gelb. Außer dieser
+Sequenz ist kein Ampelsignal sichtbar. Das Fußgängerzeichen leuchtet grün, wenn die Ampel Rot steht, sonst leuchtet diese Anzeige immer Rot
+Die Anforderungstaste ist nach diser Sequenz für 1 Minute gesperrt.
+*)
+
+// Der Nutzer drückt die Taste um Grün anzufordern. Dies wird in einem Merker gespeichert
+IF "Taste_fordert_an" AND NOT "Fussganger_Sperre" THEN
+    "Merker_angefordert" := TRUE;
+END_IF;
+
+// Der Merker ist von 0 auf 1 gesprungen und nach 10 sekunden springt Merker_Fahrzeuge_gelb1 auf 1
+"Func_Val" := S_ODT(T_NO := 0, S := "Merker_angefordert", TV := s5t#10s, Q => "Merker_Fahrzeuge_gelb1");
+// Danach startet der nächste Timer und nach 10 Sekunden geht Merker_Fahrzeuge_rot auf 1 usw.
+"Func_Val" := S_ODT(T_NO := 1, S := "Merker_Fahrzeuge_gelb1", TV := s5t#10s, Q =>"Merker_Fahrzeuge_rot");
+"Func_Val" := S_ODT(T_NO := 2, S := "Merker_Fahrzeuge_rot", TV := s5t#30s, Q => "Merker_Fahrzeuge_gelb2");
+"Func_Val" := S_ODT(T_NO := 3, S := "Merker_Fahrzeuge_gelb2", TV := s5t#10s, Q => "Merker_Fahrzeuge_aus");
+// Hier wird eine Ausschaltverzügerung verwendet. Nach dem der Merker_angefordert auf 1 übergeht springt Fussganger_Sperre auf 1
+// Nach dem Merker_angefordert auf 0 gesprungen ist bleibt die Fussganger_Sperre für weitere 60 Sekunden aufrecht.
+"Func_Val" := S_OFFDT(T_NO := 4, S := "Merker_angefordert", TV := s5t#60s, Q => "Fussganger_Sperre");
+
+// Ampelsteuerung
+IF NOT "Merker_Fahrzeuge_gelb1" AND NOT "Merker_Fahrzeuge_rot" AND NOT "Merker_Fahrzeuge_gelb2" THEN
+    "Ampel_gelb" := FALSE;
+    "Ampel_gelb_blinkend" := FALSE;
+    "Ampel_rot" := FALSE;
+    "Fussganger_rot" := TRUE;
+    "Fussganger_grun" := FALSE;
+ELSIF "Merker_Fahrzeuge_gelb1" AND NOT "Merker_Fahrzeuge_rot" AND NOT "Merker_Fahrzeuge_gelb2" THEN
+    "Ampel_gelb" := TRUE;
+    "Ampel_gelb_blinkend" := TRUE;
+    "Ampel_rot" := FALSE;
+    "Fussganger_rot" := TRUE;
+    "Fussganger_grun" := FALSE;
+ELSIF "Merker_Fahrzeuge_gelb1" AND "Merker_Fahrzeuge_rot" AND NOT "Merker_Fahrzeuge_gelb2" THEN
+    "Ampel_gelb" := FALSE;
+    "Ampel_gelb_blinkend" := FALSE;
+    "Ampel_rot" := TRUE;
+    "Fussganger_rot" := FALSE;
+    "Fussganger_grun" := TRUE;
+ELSIF "Merker_Fahrzeuge_gelb1" AND "Merker_Fahrzeuge_rot" AND "Merker_Fahrzeuge_gelb2" THEN
+    "Ampel_gelb" := TRUE;
+    "Ampel_gelb_blinkend" := TRUE;
+    "Ampel_rot" := FALSE;
+    "Fussganger_rot" := TRUE;
+    "Fussganger_grun" := FALSE;
+END_IF;
+// Nach dem Merker_Fahrzeuge aus auf 1 springt wird Merker_angefordert auf FALSE gesetzt. Somit wird Timer Nr0 und
+// somit Merker_Fahrzeuge_gelb1 zurückgesetzt. Er haben denn Wert False. Durch das das Setzen von Merker_Fahrzeuge_gelb1 wird auch
+// Timer Nr1 zurückgesetzt und damit Merker_Fahrzeuge_rot auf False gesetzt usw.
+IF "Merker_Fahrzeuge_aus" THEN
+    "Merker_angefordert" := FALSE;
+END_IF;
