@@ -1,0 +1,77 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Eine Krananlage hat einen Schaufelgreifer mit zwei Endschaltersignalen für auf und zu. Die Endschaltersignale sollen überwacht werden. Dazu wird ein
+Vorwärts-Rückwärtszähler eingesetzt. Beträgt die Zähldifferenz mehr als 3, so wird davon ausgegangen, dass der Greifer nicht richtig schließt
+oder öffnet. Das kann eintreten, wenn die Signalgeber verschmutzt oder defekt sind. Ein Ausgangssignal signalisiert diesen Fehler. Der Zähler wird
+in der Visualisierung angezeigt und kann durch eine Taste wirder auf Null gesetzt werden.
+*)
+
+// Hinweis: Der Greifer öffnet und schließt über eine zusätzliche Zeitsteuerung, damit die Greifersteuerung nicht unterbrochen wird, falls die Endschalter
+// nicht richtig betätigt werden.
+// 
+
+//"Greifer_Auf" := "Taster_Greifer_oeffnen";
+"Greifer_Zu" := "Taster_Greifer_schliessen";
+
+IF "Taster_Greifer_oeffnen" AND NOT "Taster_Greifer_schliessen" AND NOT "Greifer_auf_Timer" AND NOT "Greifer_zu_Timer" AND NOT "Greifer_auf_S1" THEN
+    "Greifer_auf_signal" := TRUE;
+END_IF;
+
+IF NOT "Taster_Greifer_oeffnen" AND "Taster_Greifer_schliessen" AND NOT "Greifer_auf_Timer" AND NOT "Greifer_zu_Timer" AND NOT "Greifer_zu_S2" THEN
+    "Greifer_zu_signal" := TRUE;
+END_IF;
+
+
+"IEC_Timer_0_DB".TP(IN:= "Greifer_auf_signal",
+                    PT:= t#2s,
+                    Q=> "Greifer_auf_Timer");
+
+"IEC_Timer_0_DB_1".TP(IN:="Greifer_zu_signal",
+                      PT:=t#2s,
+                      Q=>"Greifer_zu_Timer");
+
+
+IF "Greifer_auf_Timer" THEN
+    "Greifer_Auf" := TRUE;
+ELSE
+    "Greifer_Auf" := FALSE;
+END_IF;
+
+IF "Greifer_zu_Timer" THEN
+    "Greifer_Zu" := TRUE;
+ELSE
+    "Greifer_Zu" := FALSE;
+END_IF;
+
+// Erkennen wenn Greifer_auf_Timer nach Ablauf der Zeit auf 0 zurückgeht, damit Greifer_auf_signal zurückgesetzt wird
+"Impulsmerker_auf" := NOT "Greifer_Auf" AND NOT "Flankenmerker_auf";
+"Flankenmerker_auf" := NOT "Greifer_Auf";
+
+"Impulsmerker_zu" := NOT "Greifer_Zu" AND NOT "Flankenmerker_zu";
+"Flankenmerker_zu" := NOT "Greifer_Zu";
+
+IF "Impulsmerker_auf" THEN
+    "Greifer_auf_signal" := FALSE;
+END_IF;
+
+IF "Impulsmerker_zu" THEN
+    "Greifer_zu_signal" := FALSE;
+END_IF;
+
+
+
+"IEC_Counter_0_DB".CTUD(CU:="Greifer_auf_S1",
+                        CD:="Greifer_zu_S2",
+                        LD:="Taster_Reset_Zaehler",
+                        PV:=0,
+                        CV=>"Zaehler_Merker");
+
+"Zaehleranzeige" := "Zaehler_Merker";
+
+
+
+IF (65533 <= "Zaehler_Merker" AND "Zaehler_Merker" <= 65535) OR (0 <= "Zaehler_Merker" AND "Zaehler_Merker" <= 3) THEN
+    "Warnsignal" := FALSE;
+ELSE
+    "Warnsignal" := TRUE;
+END_IF;
