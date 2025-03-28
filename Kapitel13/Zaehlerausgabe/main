@@ -1,0 +1,34 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Ein Zählsignal soll kontinuierlich an ein Ausgangswort ausgegeben werden. Das Ausgangswort AW0 soll nicht zyklisch aktualisiert werden, sondern
+ein Mal in der Sekunde. Eine Akutalisierung soll nur bei Änderung stattfinden. Der Zählerstand wird druch eine Taste auf Null zurückgesetzt
+*)
+
+// Vorwärtszähler. Der Zählstand wird nicht sofort ausgegeben sondern ein mal pro Sekunde und auch nur wenn eine Änderung auftritt
+// Deswegen wird das Ergebnis in einem Merker zwischengespeichert
+
+"Merker_Zahler" := S_CU(C_NO := 0, CU := "Zahlsignal", R := "Taster_Reset");
+    
+    
+IF "Zahlsignal" OR "Taster_Reset" THEN
+    "Wert_aktualisieren" := TRUE;
+END_IF;
+
+// Codeabschnitt zur Pulserzeugung
+#actualTime := S_ODT(T_NO := 0, S := "Timer_Start", TV := s5t#500ms, Q => "Aktualisieren_1");
+#actualTime := S_ODT(T_NO := 1, S := "Timer_Start", TV := s5t#1s, Q => "Aktualisieren_2");
+
+IF NOT "Aktualisieren_1" AND NOT "Aktualisieren_2" THEN
+    "Timer_Start" := TRUE;
+ELSIF "Aktualisieren_1" AND "Aktualisieren_2" THEN
+    "Timer_Start" := FALSE;
+END_IF;
+
+"Impulsmerker_1" := "Aktualisieren_1" AND NOT "Flankenmerker_1";
+"Flankenmerker_1" := "Aktualisieren_1";
+
+
+IF "Wert_aktualisieren" AND "Impulsmerker_1" THEN
+    "Zahleranzeige" := WORD_TO_INT("Merker_Zahler");
+    "Wert_aktualisieren" := FALSE;
+END_IF;
