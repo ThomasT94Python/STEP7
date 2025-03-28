@@ -1,0 +1,44 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+Die Werte zweier Potentiometer werden in einem Prüfstand gemessen und verglichen. Die Stellung der Potentiometer kann dabei Manuell verändert werden. Zwei angeschlossene
+Messumformer messen die jeweils abfallende Spannung zwischen dem Mittelabgriff und den beiden Endpunkten des Wiederstandes. Der Test wird über einen Taster getriggert.
+Die Analogeingänge liefern 0 - 10V. Die Aberichung darf maximal 800 Digits betragen. Ist der Vergleich in Ordnung, dann leuchtet für 5 Sekunden eine grüne Lampe.
+Im Fehlerfall leuchtet für 5 Sekunden eine rote Lampe.
+
+So lange eine Auswertungsanzeige leuchtet, kann kein neuer Vergleich durchgeführt werden.
+*)
+
+"Impulsmerker_pos" := "Taster_Vergleich_durchfuehren" AND NOT "Flankenmerker_pos";
+"Flankenmerker_pos" := "Taster_Vergleich_durchfuehren";
+
+IF "Impulsmerker_pos" AND NOT "Vergleich_Sperre" THEN
+    // Statement section IF
+    "Unterschied" := REAL_TO_INT( ABS(INT_TO_REAL("Poti_1") - INT_TO_REAL("Poti_2")));
+    "Timer_Trigger" := TRUE;
+    "Vergleich_Sperre" := TRUE;
+    IF "Unterschied" <= 800 THEN
+        "Merker_Okay" := TRUE;
+    ELSIF "Unterschied" > 800 THEN
+        "Merker_Okay" := FALSE;
+    END_IF;
+END_IF;
+
+"IEC_Timer_0_DB".TP(IN := "Timer_Trigger",
+                    PT := t#5s,
+                    Q => "Timer_Out");
+
+IF "Vergleich_Sperre" THEN
+    IF "Timer_Out" AND "Merker_Okay" THEN
+        "Lampe_Vergleich_OK" := TRUE;
+        "Lampe_Vergleich_Fehler" := FALSE;
+    ELSIF "Timer_Out" AND NOT "Merker_Okay" THEN
+        "Lampe_Vergleich_OK" := FALSE;
+        "Lampe_Vergleich_Fehler" := TRUE;
+    ELSIF NOT "Timer_Out" THEN
+        "Lampe_Vergleich_OK" := FALSE;
+        "Lampe_Vergleich_Fehler" := FALSE;
+        "Vergleich_Sperre" := FALSE;
+        "Timer_Trigger" := False;
+    END_IF;
+END_IF;
