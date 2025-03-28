@@ -1,0 +1,44 @@
+"MHJ-PLC-Lab-Function-S71500"();
+
+(*
+Bei einer Manuell zu bedienenden Ständerbohrmaschine werden die Spane näch einem Bohrvorgang automatisch abgeblasen. Der Luftstrom soll dabei für 
+5 Sekunden anstehen, sobald der Bohrer nach dem Bohrvorgang wieder seine obere Endlage erreicht hat. Der Bohrer schlatet sich automatisch ein, wenn
+die Steuerung eingeschaltet wird. Bei eingeschalteter Steuerung kann der Bohrer über die Taster "Auf/ab" in der Vertikalen bewegt werden. Die 
+Abwärtsbewegung soll nicht möglich sein, solange der Luftstrom für das Abblasen der Späne eingeschaltet ist.
+*)
+
+// Überprüfe ob Steuerung an ist
+IF "Taster_Steuerung_Ein" AND "Taster_Steuerung_Aus" THEN
+    "Merker_Steuerung_An" := TRUE;
+    "Lampe_Steuerung_Ein" := TRUE;
+    "Merker_Bohrer_Sperre" := FALSE;
+ELSIF NOT "Taster_Steuerung_Aus" THEN
+    "Merker_Steuerung_An" := FALSE;
+    "Lampe_Steuerung_Ein" := FALSE;
+END_IF;
+
+// Bewegung des Bohrers
+
+IF "Merker_Steuerung_An" AND NOT "Merker_Bohrer_Sperre" THEN
+    "Bohrer_Bewegung" := "Taster_Bohrer_AufAb";
+END_IF;
+
+// Detektiere positive Flanke beim Sensor S1_Sensor_Bohrer_oben. Der Bohrer wird zurückgefahren und setzt bei der Endposition den S1 Sensor
+// von 0 auf 1
+
+"Impulsmerker" := "S1_Sensor_Bohrer_oben" AND NOT "Flankenmerker";
+"Flankenmerker" := "S1_Sensor_Bohrer_oben";
+
+// Hier wird TP Impuls gewählt. Der Impulsmerker aktiviert den DB und dieser fängt an die Zeit zu zählen. Dieser DB zählt die Zeit auch weiter
+// wenn der Impulsmerker im nächsten Zyklus den Wert 0 hat. Somit kann Q 5 Sekunden lang auf True gehalten werden.
+"IEC_Timer_0_DB".TP(IN := "Impulsmerker",
+                    PT := t#5s,
+                    Q => "Merker_Bohrer_Sperre");
+
+// So lange der Merker_Bohrer_Sperre aktiv ist, soll der Luftstrom aktiv sein.
+"Luftstrom" := "Merker_Bohrer_Sperre";
+
+
+
+
+
