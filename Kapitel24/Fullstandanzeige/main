@@ -1,0 +1,8 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Ein Tank kann manuell über eine Pumpe befüllt und entleert werden. Es ist der aktuelle Füllstand des Tanks anzuzeigen. Der Tank hat eine max. Füllhöhe von 500cm
+und der Sensor liefert einen Wert von 0-20mA. Die Füllstandanzeige am Tank erwartet Werte im Bereich 0 bis 500
+*)
+// OUT = (((IN - LO_LIM) / (HI_LIM - LO_LIM)) * (K2 - K1)) + K1
+"Anzeige" := DINT_TO_INT( (INT_TO_DINT("Sensor") *500) / 27648);
+// Multiplikation vor division, weil sonst der INT wert von INT_TO_DINT("Sensor")/27648 = 0
