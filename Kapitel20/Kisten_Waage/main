@@ -1,0 +1,45 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Ein Band transportier Jisten mit unterschiedlichem Gewicht auf eine Waage. Die Waage liefert einen Wert von 0 bis 10. Über drei Lampen soll angezeigt werden ob es
+sich im eine leichte, mittlschwere oder schwere Kiste handelt. Dabei gelten folgende Regeln
+
+-) Leicht: Waage liefert Werte von 0 bis 3
+-) Mittelschwer: Waage liefert Werte von 4 bis 6
+-) Schwer: Waage liefert Werte >= 7
+
+Die Zuführung der Kisten auf die Waage und der Abtransport sind nicht Gegenstand des SPS-Programms; das wird manuell ausgeführt. Das zu schreibende Programm soll den
+Wert der Waage auswerten, sobald der Sensor S1 das Vorhandensein einer Kiste signalisiert. Dabei soll der Wert der Waage erst zwei Sekunden nach dem der Sensor das
+Vorhandensein einer neuen Kiste meldet, ausgewertet werden. Das Programm soll also im Wesentlichen das Ansteuern der Lampen ausführen.
+
+Die Lampen zeigen das Gewicht so lange an, wie sich die Kiste auf der Waage befindet.
+*)
+
+// Erzeuge einen Timer der den Ausgang zwei Sekunden verzögert setzt
+
+"IEC_Timer_0_DB".TON(IN:="Sensor_Kiste_vorhanden",
+                     PT:=t#2s,
+                     Q=>"Messung_aktiv");
+
+IF "Messung_aktiv" THEN
+    IF 0 <= "Wert_der_Waage" AND "Wert_der_Waage" <= 3 THEN
+        "Lampe_Leicht" := TRUE;
+        "Lampe_Mittel" := FALSE;
+        "Lampe_Schwer" := FALSE;
+    ELSIF 4 <= "Wert_der_Waage" AND "Wert_der_Waage" <= 6 THEN
+        "Lampe_Leicht" := FALSE;
+        "Lampe_Mittel" := TRUE;
+        "Lampe_Schwer" := FALSE;
+    ELSIF 7 <= "Wert_der_Waage" THEN
+        "Lampe_Leicht" := FALSE;
+        "Lampe_Mittel" := FALSE;
+        "Lampe_Schwer" := TRUE;
+    ELSE
+        "Lampe_Leicht" := FALSE;
+        "Lampe_Mittel" := FALSE;
+        "Lampe_Schwer" := FALSE;
+    END_IF;
+ELSE
+    "Lampe_Leicht" := FALSE;
+    "Lampe_Mittel" := FALSE;
+    "Lampe_Schwer" := FALSE;
+END_IF;
