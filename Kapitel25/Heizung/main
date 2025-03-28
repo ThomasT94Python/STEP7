@@ -1,0 +1,30 @@
+"MHJ-PLC-Lab-Function-S71500"();
+(*
+Die elektrische Heizung für einen Raum soll über einen Zweipunktregler betrieben werden. Ein Steller liefert den Analogwert zur Solltemperatur. Die Heizung hat
+einen Ein-Aus-Schalter. Eine Lampe signalisiert, dass die Heizung eingeschaltet ist, und eine zweite Lampe signalisiert, dass die Heizung aktiv ist. Die
+Hysterese soll pm 3 Grad betragen.
+*)
+
+IF "Schalter_Heizung" THEN
+    "Lampe_Heizung_ein" := TRUE;
+    
+    
+    IF "Ist_Temp" <= ("Soll_Temp" + 3) AND NOT "Heizen_stopp" THEN // Erhöhen der Ist Temperatur auf Soll_temp + 3, so lange die IST-Temperatur darunter ist
+        "Lampe_Heizung_aktiv" := TRUE;
+    ELSIF "Ist_Temp" >= ("Soll_Temp" - 3) AND NOT "Kuhlen_stopp" THEN // So lange die IST-Temperatur darüber ist, wird die Heizung ausgeschalten
+        "Lampe_Heizung_aktiv" := FALSE;
+    END_IF;
+    
+    IF "Ist_Temp" = ("Soll_Temp" + 3) THEN // Oberes Hystereseende erreicht. Heizvorgang wird gesperrt Kühlvorgang wird geöffnet
+        "Heizen_stopp" := TRUE;
+        "Kuhlen_stopp" := FALSE;
+    END_IF;
+    IF "Ist_Temp" = ("Soll_Temp" - 3) THEN // Wenn die IST-Temperatur das untere Hystereende erreicht, dann soll der Kühlvorgang gesperrt und der Heizvorgang gestartet werden
+        "Heizen_stopp" := FALSE;
+        "Kuhlen_stopp" := TRUE;
+    END_IF;
+    
+ELSIF NOT "Schalter_Heizung" THEN
+    "Lampe_Heizung_ein" := FALSE;
+    "Lampe_Heizung_aktiv" := FALSE;
+END_IF;
